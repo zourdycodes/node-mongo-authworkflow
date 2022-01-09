@@ -2,10 +2,10 @@
   "name": "node-mongodb-auth",
   "version": "1.0.0",
   "description": "authentication workflow with Oauth guidance and policy",
-  "main": "server.ts",
+  "main": "./src/server.ts",
   "scripts": {
-    "start": "ts-node server.ts",
-    "server": "nodemon --exec ts-node server.ts"
+    "start": "ts-node ./src/server.ts",
+    "server": "nodemon --exec ts-node ./src/server.ts"
   },
   "keywords": [],
   "author": "Muhammad Zourdy",
