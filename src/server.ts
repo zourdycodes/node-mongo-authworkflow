@@ -1,8 +1,12 @@
 import 'dotenv/config';
-import express from 'express';
+import express, { Request, Response } from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import helmet from 'helmet';
+
+import userRouter from './routes/user';
+
 // import path from 'path';
 // import fileUpload from 'express-fileupload';
 
@@ -13,8 +17,13 @@ import cookieParser from 'cookie-parser';
   app.use(express.json());
   app.use(cors());
   app.use(cookieParser());
+  app.use(helmet());
 
   // routes
+  app.use('/user', userRouter);
+  app.get('/', (_req: Request, res: Response) => {
+    res.send(' <div><h1>God bless humanity!</h1></div>  ');
+  });
 
   // connect to db
   const URI = process.env.MONGODB_URL ?? '';
@@ -23,7 +32,7 @@ import cookieParser from 'cookie-parser';
     {
       useNewUrlParser: true,
       useUnifiedTopology: true,
-      autoIndex: true,
+      useCreateIndex: true,
     },
     (err) => {
       if (err) throw err;
