@@ -1,6 +1,8 @@
 import Users from '../models/UserSchema';
 import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 import { Request, Response } from 'express';
+import { sendMail } from './sendMail';
 
 interface TypedRequest<T> extends Request {
   body: T;
@@ -51,13 +53,16 @@ class UserControl {
 
       const newUser = { name, email, password: passwordHashed };
 
-      return res
-        .status(200)
-        .json({
-          message: 'successfully registered!',
-          registered: true,
-          data: newUser,
-        });
+      const activation_token = createActivationToken(newUser);
+
+      const url = `${process.env.CLIENT_URL}/user/activate/${activation_token}`;
+      sendMail(email, url, 'please, verify your email address!');
+
+      return res.status(200).json({
+        message: 'successfully registered!',
+        registered: true,
+        data: newUser,
+      });
     } catch (error) {
       return res.status(500).json({ message: error.message });
     }
@@ -68,8 +73,20 @@ export const userControl = new UserControl();
 
 // helpers
 
+interface Payload {
+  name: string;
+  email: string;
+  password: string;
+}
+
 function validateEmail(email: string) {
   const re =
     /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
   return re.test(email);
+}
+
+function createActivationToken(payload: Payload) {
+  return jwt.sign(payload, process.env.ACTIVATION_TOKEN_SECRET!, {
+    expiresIn: '5m',
+  });
 }
