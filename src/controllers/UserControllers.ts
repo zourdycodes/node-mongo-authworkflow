@@ -168,6 +168,15 @@ export class UserControl {
       return res.status(500).json({ message: error.message });
     }
   }
+
+  async logout(_req: Request, res: Response) {
+    try {
+      res.clearCookie('refreshToken', { path: '/user/refresh_token' });
+      return res.status(200).json({ message: 'user logged out!' });
+    } catch (error) {
+      return res.status(500).json({ message: error.message });
+    }
+  }
 }
 
 export const userControl = new UserControl();
