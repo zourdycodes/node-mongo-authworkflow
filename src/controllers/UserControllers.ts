@@ -9,9 +9,10 @@ interface TypedRequest<T> extends Request {
 }
 
 export interface Payload {
-  name: string;
-  email: string;
-  password: string;
+  name?: string;
+  email?: string;
+  password?: string;
+  id?: string | number;
 }
 
 class UserControl {
@@ -55,15 +56,20 @@ class UserControl {
         });
       }
 
+      // hashing password
       const passwordHashed = await bcrypt.hash(password, 12);
 
+      // new user
       const newUser = { name, email, password: passwordHashed };
 
+      // create an activation token for a new user
       const activation_token = createActivationToken(newUser);
 
+      // handling email activation
       const url = `${process.env.CLIENT_URL}/user/activate/${activation_token}`;
       sendMail(email, url, 'please, verify your email address!');
 
+      // send to the server the success result
       return res.status(200).json({
         message: 'successfully registered!',
         registered: true,
@@ -88,21 +94,26 @@ class UserControl {
         process.env.ACTIVATION_TOKEN_SECRET!
       );
 
+      // destructure the user
       const { name, email, password } = user as Payload;
 
+      // check if there is any user in the database with given email address
       const check = await Users.findOne({ email });
 
+      // if there is any: return error
       if (check)
         return res
-          .status(500)
+          .status(400)
           .json({ message: 'this email is already exist!' });
 
+      // if all good create new User in the database
       const newUser = new Users({
         name,
         email,
         password,
       });
 
+      // save new registered user
       await newUser.save();
 
       return res.status(200).json({
@@ -113,6 +124,47 @@ class UserControl {
       return res.status(500).json({
         message: `cannot activate your account, ${error.message}`,
       });
+    }
+  }
+
+  async login(
+    req: TypedRequest<{ email: string; password: string }>,
+    res: Response
+  ) {
+    try {
+      //  get email and password from client
+      const { email, password } = req.body;
+
+      // check if there is a user in the database with given email address
+      const user = await Users.findOne({ email });
+
+      // check if there is no user with given email return error
+      if (!user) {
+        return res
+          .status(400)
+          .json({ message: 'This email does not exist in our database!' });
+      }
+
+      // compare the hash password and check if its matched or not
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) {
+        return res.status(400).json({ message: 'Incorrect password!' });
+      }
+
+      // refresh token when login (with given user is from database) and the token long last for 7 days
+      const refresh_token = createRefreshToken({ id: user._id });
+      res.cookie('refreshToken', refresh_token, {
+        httpOnly: true,
+        path: '/user/refresh_token',
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      });
+
+      // if all good return => login success!
+      return res.status(200).json({
+        message: 'Login success!',
+      });
+    } catch (error) {
+      return res.status(500).json({ message: error.message });
     }
   }
 }
@@ -127,8 +179,20 @@ function validateEmail(email: string) {
   return re.test(email);
 }
 
-function createActivationToken(payload: Payload) {
+export function createActivationToken(payload: Payload) {
   return jwt.sign(payload, process.env.ACTIVATION_TOKEN_SECRET!, {
     expiresIn: '5m',
+  });
+}
+
+export function createAccessToken(payload: Payload) {
+  return jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET!, {
+    expiresIn: '15m',
+  });
+}
+
+export function createRefreshToken(payload: Payload) {
+  return jwt.sign(payload, process.env.REFRESH_TOKEN_SECRET!, {
+    expiresIn: '7d',
   });
 }
