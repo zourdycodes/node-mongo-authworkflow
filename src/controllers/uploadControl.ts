@@ -2,6 +2,7 @@ import cloudinary from 'cloudinary';
 import fs from 'fs';
 import { UserControl } from './UserControllers';
 import { Request, Response } from 'express';
+import { removeTemp } from '..//utils/removeTemp';
 
 cloudinary.v2.config({
   cloud_name: process.env.CLOUD_NAME!,
@@ -40,12 +41,6 @@ class UploadControl extends UserControl {
       });
     }
   }
-}
-
-function removeTemp(path: string) {
-  return fs.unlink(path, (error) => {
-    if (error) throw error;
-  });
 }
 
 export const uploadControl = new UploadControl();
