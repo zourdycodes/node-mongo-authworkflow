@@ -4,8 +4,9 @@ import jwt from 'jsonwebtoken';
 import { Request, Response } from 'express';
 import { sendMail } from './sendMail';
 
-interface TypedRequest<T> extends Request {
+export interface TypedRequest<T> extends Request {
   body: T;
+  user?: T;
 }
 
 export interface Payload {
