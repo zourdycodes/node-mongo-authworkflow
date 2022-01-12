@@ -1,8 +1,8 @@
 import cloudinary from 'cloudinary';
-import fs from 'fs';
 import { UserControl } from './UserControllers';
 import { Request, Response } from 'express';
 import { removeTemp } from '..//utils/removeTemp';
+import { UploadedFile } from 'express-fileupload';
 
 cloudinary.v2.config({
   cloud_name: process.env.CLOUD_NAME!,
@@ -10,14 +10,10 @@ cloudinary.v2.config({
   api_secret: process.env.CLOUD_API_SECRET!,
 });
 
-interface File {
-  tempFilePath: string;
-}
-
 class UploadControl extends UserControl {
   public uploadAvatar(req: Request, res: Response) {
     try {
-      const file = req.files?.file as File;
+      const file = req.files?.file as UploadedFile;
 
       return cloudinary.v2.uploader.upload(
         file?.tempFilePath,
