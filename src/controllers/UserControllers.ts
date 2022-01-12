@@ -8,6 +8,12 @@ interface TypedRequest<T> extends Request {
   body: T;
 }
 
+interface Payload {
+  name: string;
+  email: string;
+  password: string;
+}
+
 class UserControl {
   async register(
     req: TypedRequest<{ name: string; email: string; password: string }>,
@@ -67,17 +73,53 @@ class UserControl {
       return res.status(500).json({ message: error.message });
     }
   }
+
+  async activateAccount(
+    req: TypedRequest<{ activation_token: string }>,
+    res: Response
+  ) {
+    try {
+      // get token from client
+      const { activation_token } = req.body;
+
+      // verify the handshake
+      const user = jwt.verify(
+        activation_token,
+        process.env.ACTIVATION_TOKEN_SECRET!
+      );
+
+      const { name, email, password } = user as Payload;
+
+      const check = await Users.findOne({ email });
+
+      if (check)
+        return res
+          .status(500)
+          .json({ message: 'this email is already exist!' });
+
+      const newUser = new Users({
+        name,
+        email,
+        password,
+      });
+
+      await newUser.save();
+
+      return res.status(200).json({
+        message: 'your account has been activated!',
+        activated: true,
+      });
+    } catch (error) {
+      return res.status(500).json({
+        message: `cannot activate your account, ${error.message}`,
+      });
+    }
+  }
 }
 
 export const userControl = new UserControl();
 
 // helpers
-
-interface Payload {
-  name: string;
-  email: string;
-  password: string;
-}
 
 function validateEmail(email: string) {
   const re =

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import nodemailer from 'nodemailer';
 import { google } from 'googleapis';
 
