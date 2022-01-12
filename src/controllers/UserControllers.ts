@@ -15,7 +15,7 @@ export interface Payload {
   id?: string | number;
 }
 
-class UserControl {
+export class UserControl {
   async register(
     req: TypedRequest<{ name: string; email: string; password: string }>,
     res: Response
