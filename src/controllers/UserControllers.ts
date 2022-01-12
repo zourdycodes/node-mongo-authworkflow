@@ -8,7 +8,7 @@ interface TypedRequest<T> extends Request {
   body: T;
 }
 
-interface Payload {
+export interface Payload {
   name: string;
   email: string;
   password: string;
