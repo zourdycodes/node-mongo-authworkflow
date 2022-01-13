@@ -261,6 +261,29 @@ export class UserControl {
       return res.status(500).json({ message: error.message });
     }
   }
+
+  async getUserInformation(req: TypedRequest<Payload>, res: Response) {
+    try {
+      const user = await Users.findById(req.user?.id).select('-password');
+      console.log(user);
+
+      return res.status(200).json({ message: 'get user successful', user });
+    } catch (error) {
+      return res.status(500).json({ message: error.message });
+    }
+  }
+
+  async getAllUsersInformation(_req: Request, res: Response) {
+    try {
+      const users = await Users.find().select('password');
+
+      return res
+        .status(200)
+        .json({ message: 'get all users from database', users });
+    } catch (error) {
+      return res.status(500).json({ message: error.message });
+    }
+  }
 }
 
 export const userControl = new UserControl();
