@@ -178,7 +178,7 @@ export class UserControl {
     }
   }
 
-  async getRefreshToken(req: Request, res: Response) {
+  getRefreshToken(req: Request, res: Response) {
     try {
       const refreshToken: string = req.cookies?.refreshToken;
 
@@ -204,6 +204,31 @@ export class UserControl {
       });
 
       return res.status(200).json({ access_token });
+    } catch (error) {
+      return res.status(500).json({ message: error.message });
+    }
+  }
+
+  async forgotPassword(req: TypedRequest<{ email: string }>, res: Response) {
+    try {
+      // get the email from the client
+      const { email } = req.body;
+
+      // get user from DB with given email address
+      const user = await Users.findOne({ email });
+
+      // check if there is any user with given email in our database
+      if (!user) {
+        return res.status(404).json({ message: 'This email does not exist!' });
+      }
+
+      // create an access token
+      const access_token = createAccessToken({ id: user._id });
+      const url = `${process.env.CLIENT_URL}/user/reset/${access_token}`;
+
+      // send the email with SMTP protocol to the user email address
+      sendMail(email, url, 'Reset your password!');
+      return res.status(200).json({ message: 'please check our email' });
     } catch (error) {
       return res.status(500).json({ message: error.message });
     }
