@@ -233,6 +233,34 @@ export class UserControl {
       return res.status(500).json({ message: error.message });
     }
   }
+
+  async resetPassword(
+    req: TypedRequest<{ password: string } & Payload>,
+    res: Response
+  ) {
+    try {
+      // get user new password from client
+      const { password } = req.body;
+      console.log(password);
+
+      // hash the new password
+      const hashedPassword = await bcrypt.hash(password, 12);
+
+      // update the password of user in the database
+      await Users.findOneAndUpdate(
+        { _id: req.user?.id },
+        {
+          password: hashedPassword,
+        }
+      );
+
+      return res
+        .status(200)
+        .json({ message: 'your password successully changed!' });
+    } catch (error) {
+      return res.status(500).json({ message: error.message });
+    }
+  }
 }
 
 export const userControl = new UserControl();
