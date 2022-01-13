@@ -177,6 +177,37 @@ export class UserControl {
       return res.status(500).json({ message: error.message });
     }
   }
+
+  async getRefreshToken(req: Request, res: Response) {
+    try {
+      const refreshToken: string = req.cookies?.refreshToken;
+
+      if (!refreshToken) {
+        return res.status(400).json({ message: 'please login first!' });
+      }
+
+      const tokenAccess = jwt.verify(
+        refreshToken,
+        process.env.REFRESH_TOKEN_SECRET!
+      );
+
+      if (!tokenAccess) {
+        return res
+          .status(403)
+          .json({ message: 'please login first to get the token!' });
+      }
+
+      const user = tokenAccess as Payload;
+
+      const access_token = createAccessToken({
+        id: user.id,
+      });
+
+      return res.status(200).json({ access_token });
+    } catch (error) {
+      return res.status(500).json({ message: error.message });
+    }
+  }
 }
 
 export const userControl = new UserControl();
