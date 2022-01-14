@@ -284,6 +284,29 @@ export class UserControl {
       return res.status(500).json({ message: error.message });
     }
   }
+
+  async updateUser(
+    req: TypedRequest<{ avatar: string } & Payload>,
+    res: Response
+  ) {
+    try {
+      const { name, avatar } = req.body;
+
+      await Users.findOneAndUpdate(
+        { _id: req.user?.id },
+        {
+          name,
+          avatar,
+        }
+      );
+
+      return res
+        .status(200)
+        .json({ message: 'your profile updated successfully!' });
+    } catch (error) {
+      return res.status(500).json({ message: error.message });
+    }
+  }
 }
 
 export const userControl = new UserControl();
