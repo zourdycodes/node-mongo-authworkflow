@@ -6,6 +6,7 @@ import { sendMail } from './sendMail';
 
 export interface TypedRequest<T> extends Request {
   body: T;
+
   user?: T;
 }
 
@@ -303,6 +304,26 @@ export class UserControl {
       return res
         .status(200)
         .json({ message: 'your profile updated successfully!' });
+    } catch (error) {
+      return res.status(500).json({ message: error.message });
+    }
+  }
+
+  async updateUserRole(
+    req: TypedRequest<{ role: number } & { id: string | number }>,
+    res: Response
+  ) {
+    try {
+      const { role } = req.body;
+
+      await Users.findOneAndUpdate(
+        { _id: req.params.id },
+        {
+          role,
+        }
+      );
+
+      return res.status(200).json({ message: 'updated successfully!' });
     } catch (error) {
       return res.status(500).json({ message: error.message });
     }
