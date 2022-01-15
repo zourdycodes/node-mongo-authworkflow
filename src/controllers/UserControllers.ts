@@ -328,6 +328,16 @@ export class UserControl {
       return res.status(500).json({ message: error.message });
     }
   }
+  
+  async deleteUser(req: Request, res: Response) {
+    try {
+      await Users.findByIdAndDelete(req.params.id);
+      
+      return res.status(200).json({message: 'your account deleted successfully!'});
+    } catch (error) {
+      return res.status(500).json({message: error.message});
+    }
+  }
 }
 
 export const userControl = new UserControl();
